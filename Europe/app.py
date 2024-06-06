@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 import os
 from PIL import Image
 import piexif
@@ -44,29 +44,26 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'photo' not in request.files:
-        return 'No file part'
+        return jsonify({'success': False, 'message': 'No file part'})
     file = request.files['photo']
     if file.filename == '':
-        return 'No selected file'
+        return jsonify({'success': False, 'message': 'No selected file'})
     if file and allowed_file(file.filename):
         filename = file.filename
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         try:
             exif_data = piexif.load(file_path)
-            print("Exif Data:", exif_data)  # Log the contents of exif_data
             lat, lon = get_gps_coordinates(exif_data)
-            print("GPS Coordinates:", lat, lon)  # Log the extracted GPS coordinates
             if lat is not None and lon is not None:
-                return f'File uploaded successfully. GPS Coordinates: {lat}, {lon}'
+                return jsonify({'success': True, 'latitude': lat, 'longitude': lon})
             else:
-                return 'No GPS coordinates found in the photo.'
+                return jsonify({'success': False, 'message': 'No GPS coordinates found in the photo.'})
         except Exception as e:
-            return f'Error processing the file: {e}'
+            return jsonify({'success': False, 'message': f'Error processing the file: {e}'})
     else:
-        return 'Invalid file format'
+        return jsonify({'success': False, 'message': 'Invalid file format'})
 
 if __name__ == '__main__':
-    # Use the PORT environment variable provided by Heroku
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
