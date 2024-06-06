@@ -7,9 +7,21 @@
 </head>
 <body>
     <h1>Upload Photos</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
+    <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
         <input type="file" name="photo" accept="image/*" multiple>
-        <input type="submit" value="Upload">
+        <input type="submit" value="Upload" onclick="showCoordinates()">
     </form>
+    <div id="coordinates" style="display:none;">
+        <h2>GPS Coordinates:</h2>
+        <p id="latitude"></p>
+        <p id="longitude"></p>
+    </div>
+
+    <script>
+        function showCoordinates() {
+            // Display the hidden div
+            document.getElementById('coordinates').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
