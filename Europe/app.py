@@ -55,7 +55,9 @@ def upload_file():
         file.save(file_path)
         try:
             exif_data = piexif.load(file_path)
+            print("Exif Data:", exif_data)  # Log the contents of exif_data
             lat, lon = get_gps_coordinates(exif_data)
+            print("GPS Coordinates:", lat, lon)  # Log the extracted GPS coordinates
             if lat is not None and lon is not None:
                 with open('output.csv', 'a', newline='') as csvfile:
                     csvwriter = csv.writer(csvfile)
