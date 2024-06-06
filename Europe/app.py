@@ -2,8 +2,7 @@ from flask import Flask, request, render_template
 import os
 import csv
 from PIL import Image
-from exif import Image as ExifImage
-from werkzeug.utils import url_quote
+import piexif
 
 app = Flask(__name__)
 
@@ -17,31 +16,27 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_gps_coordinates(exif_data):
-    try:
-        if exif_data.has_exif:
-            gps_info = exif_data.gps_info
-            lat = gps_info.get("GPSLatitude")
-            lon = gps_info.get("GPSLongitude")
-            lat_ref = gps_info.get("GPSLatitudeRef")
-            lon_ref = gps_info.get("GPSLongitudeRef")
-
-            if lat and lon and lat_ref and lon_ref:
-                lat = convert_to_degrees(lat)
-                lon = convert_to_degrees(lon)
-                if lat_ref != "N":
-                    lat = -lat
-                if lon_ref != "E":
-                    lon = -lon
-                return lat, lon
-    except Exception as e:
-        print(f"Error getting GPS coordinates: {e}")
+    gps = exif_data.get('GPS')
+    if gps:
+        lat = gps.get(piexif.GPSIFD.GPSLatitude)
+        lon = gps.get(piexif.GPSIFD.GPSLongitude)
+        if lat and lon:
+            lat_ref = gps.get(piexif.GPSIFD.GPSLatitudeRef)
+            lon_ref = gps.get(piexif.GPSIFD.GPSLongitudeRef)
+            lat = convert_to_degrees(lat)
+            lon = convert_to_degrees(lon)
+            if lat_ref != 'N':
+                lat = -lat
+            if lon_ref != 'E':
+                lon = -lon
+            return lat, lon
     return None, None
 
 def convert_to_degrees(value):
-    d = value[0]
-    m = value[1]
-    s = value[2]
-    return d + (m / 60.0) + (s / 3600.0)
+    degrees = value[0][0] / value[0][1]
+    minutes = value[1][0] / value[1][1]
+    seconds = value[2][0] / value[2][1]
+    return degrees + minutes / 60 + seconds / 3600
 
 @app.route('/')
 def index():
@@ -58,17 +53,20 @@ def upload_file():
         filename = file.filename
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
-        with open(file_path, 'rb') as image_file:
-            image = ExifImage(image_file)
-            lat, lon = get_gps_coordinates(image)
-            if lat and lon:
+        try:
+            exif_data = piexif.load(file_path)
+            lat, lon = get_gps_coordinates(exif_data)
+            if lat is not None and lon is not None:
                 with open('output.csv', 'a', newline='') as csvfile:
                     csvwriter = csv.writer(csvfile)
                     csvwriter.writerow([filename, lat, lon])
-        return 'File uploaded successfully'
+                return 'File uploaded successfully'
+            else:
+                return 'No GPS coordinates found in the photo.'
+        except Exception as e:
+            return f'Error processing the file: {e}'
     else:
         return 'Invalid file format'
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
+if __name__ == '__main__':
+    app.run(debug=True)
