@@ -46,9 +46,9 @@
 <body>
     <div class="container">
         <h1>Upload Photos</h1>
-        <form id="upload-form" enctype="multipart/form-data">
+        <form id="upload-form" enctype="multipart/form-data" action="/upload" method="post">
             <input type="file" name="photo" id="photo-input" accept="image/*" multiple>
-            <input type="button" id="upload-btn" value="Upload">
+            <input type="submit" id="upload-btn" value="Upload">
         </form>
         <div id="coordinates" style="display:none;">
             <h2>GPS Coordinates:</h2>
@@ -60,9 +60,29 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#upload-btn').click(function() {
-                // Show the hidden coordinates div
-                $('#coordinates').show();
+            $('#upload-form').submit(function(event) {
+                // Prevent form submission
+                event.preventDefault();
+                // Perform AJAX request to upload the file
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: new FormData(this),
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        // Show the hidden coordinates div
+                        $('#coordinates').show();
+                        // Parse and display the GPS coordinates
+                        var coordinates = response.split(' ');
+                        $('#latitude').text('Latitude: ' + coordinates[0]);
+                        $('#longitude').text('Longitude: ' + coordinates[1]);
+                    },
+                    error: function(xhr, status, error) {
+                        // Display error message if any
+                        alert('Error: ' + error);
+                    }
+                });
             });
         });
     </script>
