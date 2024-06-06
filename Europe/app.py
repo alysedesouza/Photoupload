@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template
 import os
-import csv
 from PIL import Image
 import piexif
 
@@ -59,10 +58,7 @@ def upload_file():
             lat, lon = get_gps_coordinates(exif_data)
             print("GPS Coordinates:", lat, lon)  # Log the extracted GPS coordinates
             if lat is not None and lon is not None:
-                with open('output.csv', 'a', newline='') as csvfile:
-                    csvwriter = csv.writer(csvfile)
-                    csvwriter.writerow([filename, lat, lon])
-                return 'File uploaded successfully'
+                return f'File uploaded successfully. GPS Coordinates: {lat}, {lon}'
             else:
                 return 'No GPS coordinates found in the photo.'
         except Exception as e:
