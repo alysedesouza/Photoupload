@@ -5,43 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload Photos</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f7f7f7;
-            color: #333;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1, h2 {
-            text-align: center;
-        }
-
-        form {
-            text-align: center;
-        }
-
-        input[type="file"] {
-            display: block;
-            margin: 20px auto;
-        }
-
-        #coordinates {
-            display: none;
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+        /* Your CSS styles here */
     </style>
 </head>
 <body>
@@ -49,9 +13,9 @@
         <h1>Upload Photos</h1>
         <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
             <input type="file" name="photo" accept="image/*" multiple>
-            <input type="submit" value="Upload">
+            <input type="button" value="Upload" onclick="uploadPhoto()">
         </form>
-        <div id="coordinates">
+        <div id="coordinates" style="display:none;">
             <h2>GPS Coordinates:</h2>
             <p id="latitude"></p>
             <p id="longitude"></p>
@@ -59,9 +23,33 @@
     </div>
 
     <script>
-        function showCoordinates() {
-            // Display the hidden div
-            document.getElementById('coordinates').style.display = 'block';
+        function uploadPhoto() {
+            var form = document.getElementById('upload-form');
+            var formData = new FormData(form);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        document.getElementById('coordinates').style.display = 'block';
+                        document.getElementById('latitude').innerText = 'Latitude: ' + response.latitude;
+                        document.getElementById('longitude').innerText = 'Longitude: ' + response.longitude;
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                } else {
+                    alert('Error: ' + xhr.statusText);
+                }
+            };
+
+            xhr.onerror = function() {
+                alert('Network error');
+            };
+
+            xhr.send(formData);
         }
     </script>
 </body>
