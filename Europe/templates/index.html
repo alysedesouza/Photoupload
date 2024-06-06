@@ -4,8 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload Photos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
-        /* Your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        #coordinates {
+            display: none;
+            margin-top: 30px;
+        }
+
+        #coordinates h2 {
+            color: #333;
+        }
+
+        #latitude, #longitude {
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -13,9 +76,9 @@
         <h1>Upload Photos</h1>
         <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
             <input type="file" name="photo" accept="image/*" multiple>
-            <input type="button" value="Upload" onclick="uploadPhoto()">
+            <input type="submit" value="Upload" onclick="showCoordinates()">
         </form>
-        <div id="coordinates" style="display:none;">
+        <div id="coordinates">
             <h2>GPS Coordinates:</h2>
             <p id="latitude"></p>
             <p id="longitude"></p>
@@ -23,33 +86,9 @@
     </div>
 
     <script>
-        function uploadPhoto() {
-            var form = document.getElementById('upload-form');
-            var formData = new FormData(form);
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload', true);
-
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('coordinates').style.display = 'block';
-                        document.getElementById('latitude').innerText = 'Latitude: ' + response.latitude;
-                        document.getElementById('longitude').innerText = 'Longitude: ' + response.longitude;
-                    } else {
-                        alert('Error: ' + response.message);
-                    }
-                } else {
-                    alert('Error: ' + xhr.statusText);
-                }
-            };
-
-            xhr.onerror = function() {
-                alert('Network error');
-            };
-
-            xhr.send(formData);
+        function showCoordinates() {
+            // Display the hidden div
+            document.getElementById('coordinates').style.display = 'block';
         }
     </script>
 </body>
