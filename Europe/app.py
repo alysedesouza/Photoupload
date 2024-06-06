@@ -19,22 +19,23 @@ def get_gps_coordinates(exif_data):
     if gps:
         lat = gps.get(piexif.GPSIFD.GPSLatitude)
         lon = gps.get(piexif.GPSIFD.GPSLongitude)
-        lat_ref = gps.get(piexif.GPSIFD.GPSLatitudeRef)
-        lon_ref = gps.get(piexif.GPSIFD.GPSLongitudeRef)
-        if lat and lon and lat_ref and lon_ref:
-            lat = convert_to_decimal_degrees(lat, lat_ref)
-            lon = convert_to_decimal_degrees(lon, lon_ref)
+        if lat and lon:
+            lat_ref = gps.get(piexif.GPSIFD.GPSLatitudeRef).decode()
+            lon_ref = gps.get(piexif.GPSIFD.GPSLongitudeRef).decode()
+            lat = convert_to_degrees(lat)
+            lon = convert_to_degrees(lon)
+            if lat_ref != 'N':
+                lat = -lat
+            if lon_ref != 'E':
+                lon = -lon
             return lat, lon
     return None, None
 
-def convert_to_decimal_degrees(value, ref):
+def convert_to_degrees(value):
     degrees = value[0][0] / value[0][1]
     minutes = value[1][0] / value[1][1]
     seconds = value[2][0] / value[2][1]
-    decimal_degrees = degrees + (minutes / 60) + (seconds / 3600)
-    if ref in ['S', 'W']:
-        decimal_degrees = -decimal_degrees
-    return decimal_degrees
+    return degrees + (minutes / 60) + (seconds / 3600)
 
 @app.route('/')
 def index():
