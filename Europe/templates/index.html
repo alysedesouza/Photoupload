@@ -78,11 +78,19 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         $(document).ready(function() {
-            var map = L.map('map').setView([0, 0], 2); // Initialize the map
+            // Initialize the map
+            var map = L.map('map').setView([-25.2744, 133.7751], 4); // Centered on Australia
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+
+            // Define bounds for Australia
+            var australiaBounds = [
+                [-44, 113], // Southwest corner
+                [-10, 154]  // Northeast corner
+            ];
+            map.fitBounds(australiaBounds);
 
             $('#upload-form').submit(function(event) {
                 // Prevent form submission
