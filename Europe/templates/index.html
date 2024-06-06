@@ -4,92 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload Photos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            background-color: #f2f2f2; /* Light gray background */
         }
 
         .container {
-            max-width: 600px;
-            width: 100%;
+            max-width: 400px; /* Centered container with maximum width */
+            margin: 50px auto; /* Center the container vertically and horizontally */
             padding: 20px;
-            background-color: #fff;
+            background-color: #fff; /* White background */
             border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
         }
 
         h1 {
             text-align: center;
-            margin-bottom: 30px;
-            color: #333;
+            margin-bottom: 20px; /* Add spacing below the heading */
         }
 
         form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            text-align: center;
         }
 
         input[type="file"] {
-            margin-bottom: 20px;
-        }
-
-        input[type="submit"] {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #0056b3;
+            display: block;
+            margin: 20px auto; /* Center the file input */
         }
 
         #coordinates {
-            display: none;
-            margin-top: 30px;
-        }
-
-        #coordinates h2 {
-            color: #333;
-        }
-
-        #latitude, #longitude {
-            color: #666;
+            margin-top: 20px; /* Add spacing above the coordinates section */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Upload Photos</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
-            <input type="file" name="photo" accept="image/*" multiple>
-            <input type="submit" value="Upload" onclick="showCoordinates()">
+        <form id="upload-form" enctype="multipart/form-data">
+            <input type="file" name="photo" id="photo-input" accept="image/*" multiple>
+            <input type="button" id="upload-btn" value="Upload">
         </form>
-        <div id="coordinates">
+        <div id="coordinates" style="display:none;">
             <h2>GPS Coordinates:</h2>
             <p id="latitude"></p>
             <p id="longitude"></p>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function showCoordinates() {
-            // Display the hidden div
-            document.getElementById('coordinates').style.display = 'block';
-        }
+        $(document).ready(function() {
+            $('#upload-btn').click(function() {
+                // Show the hidden coordinates div
+                $('#coordinates').show();
+            });
+        });
     </script>
 </body>
 </html>
