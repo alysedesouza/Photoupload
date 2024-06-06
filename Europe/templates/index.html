@@ -1,0 +1,52 @@
+function showSelectedNumbers() {
+    var zoneElement = document.getElementById("zone");
+    var selectedZone = zoneElement.value;
+
+    var EastingInput = document.getElementById("Easting");
+    var Easting = EastingInput.value.trim();
+
+    var NorthingInput = document.getElementById("Northing");
+    var Northing = NorthingInput.value.trim();
+
+    // Validate input values
+    if (!Easting || !Northing || isNaN(Easting) || isNaN(Northing)) {
+        console.error('Invalid Easting or Northing value');
+        alert('Please enter valid Easting and Northing values.');
+        return;
+    }
+
+    console.log(`Sending data: Zone=${selectedZone}, Easting=${Easting}, Northing=${Northing}`);
+
+    fetch('/convert_coordinates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ zone: selectedZone, eastings: Easting, northings: Northing }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Received data:', data);
+        var resultSection = document.getElementById("resultSection");
+        var resultParagraph = document.getElementById("result");
+
+        resultParagraph.textContent = `Transformed Longitude: ${data.transformed_easting}, Transformed Latitude: ${data.transformed_northing}`;
+        resultSection.style.display = "block";
+
+        // Add marker to the map
+        const marker = L.marker([data.transformed_northing, data.transformed_easting]).addTo(map);
+        marker.bindPopup(`Transformed Coordinates:<br>Longitude: ${data.transformed_easting}<br>Latitude: ${data.transformed_northing}`).openPopup();
+
+        // Center map on new coordinates
+        map.setView([data.transformed_northing, data.transformed_easting], 15);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while converting coordinates. Please try again.');
+    });
+}
