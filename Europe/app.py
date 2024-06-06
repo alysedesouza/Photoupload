@@ -3,7 +3,7 @@ import os
 import csv
 from PIL import Image
 from exif import Image as ExifImage
-from werkzeug.urls import url_unquote as url_quote
+from werkzeug.utils import url_quote
 
 app = Flask(__name__)
 
