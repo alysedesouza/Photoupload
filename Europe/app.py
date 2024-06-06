@@ -11,30 +11,30 @@ ALLOWED_EXTENSIONS = {'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_gps_coordinates(exif_data):
     gps = exif_data.get('GPS')
     if gps:
         lat = gps.get(piexif.GPSIFD.GPSLatitude)
         lon = gps.get(piexif.GPSIFD.GPSLongitude)
-        if lat and lon:
-            lat_ref = gps.get(piexif.GPSIFD.GPSLatitudeRef)
-            lon_ref = gps.get(piexif.GPSIFD.GPSLongitudeRef)
-            lat = convert_to_degrees(lat)
-            lon = convert_to_degrees(lon)
-            if lat_ref != 'N':
-                lat = -lat
-            if lon_ref != 'E':
-                lon = -lon
+        lat_ref = gps.get(piexif.GPSIFD.GPSLatitudeRef)
+        lon_ref = gps.get(piexif.GPSIFD.GPSLongitudeRef)
+        if lat and lon and lat_ref and lon_ref:
+            lat = convert_to_decimal_degrees(lat, lat_ref)
+            lon = convert_to_decimal_degrees(lon, lon_ref)
             return lat, lon
     return None, None
 
-def convert_to_degrees(value):
+def convert_to_decimal_degrees(value, ref):
     degrees = value[0][0] / value[0][1]
     minutes = value[1][0] / value[1][1]
     seconds = value[2][0] / value[2][1]
-    return degrees + minutes / 60 + seconds / 3600
+    decimal_degrees = degrees + (minutes / 60) + (seconds / 3600)
+    if ref in ['S', 'W']:
+        decimal_degrees = -decimal_degrees
+    return decimal_degrees
 
 @app.route('/')
 def index():
