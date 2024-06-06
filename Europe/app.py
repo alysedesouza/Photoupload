@@ -1,69 +1,91 @@
-from flask import Flask, request, render_template, jsonify
-import os
-from PIL import Image
-import piexif
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Photos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2; /* Light gray background */
+        }
 
-app = Flask(__name__)
+        .container {
+            max-width: 400px; /* Centered container with maximum width */
+            margin: 50px auto; /* Center the container vertically and horizontally */
+            padding: 20px;
+            background-color: #fff; /* White background */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg'}
+        h1 {
+            text-align: center;
+            margin-bottom: 20px; /* Add spacing below the heading */
+        }
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+        form {
+            text-align: center;
+        }
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        input[type="file"] {
+            display: block;
+            margin: 20px auto; /* Center the file input */
+        }
 
-def get_gps_coordinates(exif_data):
-    gps = exif_data.get('GPS')
-    if gps:
-        lat = gps.get(piexif.GPSIFD.GPSLatitude)
-        lon = gps.get(piexif.GPSIFD.GPSLongitude)
-        if lat and lon:
-            lat_ref = gps.get(piexif.GPSIFD.GPSLatitudeRef)
-            lon_ref = gps.get(piexif.GPSIFD.GPSLongitudeRef)
-            lat = convert_to_degrees(lat)
-            lon = convert_to_degrees(lon)
-            if lat_ref != 'N':
-                lat = -lat
-            if lon_ref != 'E':
-                lon = -lon
-            return lat, lon
-    return None, None
+        #coordinates {
+            margin-top: 20px; /* Add spacing above the coordinates section */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center; /* Center the text */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Photos</h1>
+        <form id="upload-form" enctype="multipart/form-data" action="/upload" method="post">
+            <input type="file" name="photo" id="photo-input" accept="image/*" multiple>
+            <input type="submit" id="upload-btn" value="Upload">
+        </form>
+        <div id="coordinates" style="display:none;">
+            <h2>GPS Coordinates:</h2>
+            <p id="latitude"></p>
+            <p id="longitude"></p>
+        </div>
+    </div>
 
-def convert_to_degrees(value):
-    degrees = value[0][0] / value[0][1]
-    minutes = value[1][0] / value[1][1]
-    seconds = value[2][0] / value[2][1]
-    return degrees + minutes / 60 + seconds / 3600
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'photo' not in request.files:
-        return jsonify({'success': False, 'message': 'No file part'})
-    file = request.files['photo']
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'No selected file'})
-    if file and allowed_file(file.filename):
-        filename = file.filename
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        try:
-            exif_data = piexif.load(file_path)
-            lat, lon = get_gps_coordinates(exif_data)
-            if lat is not None and lon is not None:
-                return jsonify({'success': True, 'latitude': lat, 'longitude': lon})
-            else:
-                return jsonify({'success': False, 'message': 'No GPS coordinates found in the photo.'})
-        except Exception as e:
-            return jsonify({'success': False, 'message': f'Error processing the file: {e}'})
-    else:
-        return jsonify({'success': False, 'message': 'Invalid file format'})
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#upload-form').submit(function(event) {
+                // Prevent form submission
+                event.preventDefault();
+                // Perform AJAX request to upload the file
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: new FormData(this),
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json', // Expect JSON response
+                    success: function(response) {
+                        // Show the hidden coordinates div
+                        $('#coordinates').show();
+                        // Parse and display the GPS coordinates
+                        $('#latitude').text('Latitude: ' + response.latitude);
+                        $('#longitude').text('Longitude: ' + response.longitude);
+                    },
+                    error: function(xhr, status, error) {
+                        // Display error message if any
+                        alert('Error: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
