@@ -45,24 +45,29 @@ def index():
 def upload_file():
     if 'photo' not in request.files:
         return jsonify({'success': False, 'message': 'No file part'})
-    file = request.files['photo']
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'No selected file'})
-    if file and allowed_file(file.filename):
-        filename = file.filename
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        try:
-            exif_data = piexif.load(file_path)
-            lat, lon = get_gps_coordinates(exif_data)
-            if lat is not None and lon is not None:
-                return jsonify({'success': True, 'latitude': lat, 'longitude': lon})
-            else:
-                return jsonify({'success': False, 'message': 'No GPS coordinates found in the photo.'})
-        except Exception as e:
-            return jsonify({'success': False, 'message': f'Error processing the file: {e}'})
-    else:
-        return jsonify({'success': False, 'message': 'Invalid file format'})
+    files = request.files.getlist('photo')
+    if not files:
+        return jsonify({'success': False, 'message': 'No selected files'})
+    
+    response_data = []
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = file.filename
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            try:
+                exif_data = piexif.load(file_path)
+                lat, lon = get_gps_coordinates(exif_data)
+                if lat is not None and lon is not None:
+                    response_data.append({'filename': filename, 'latitude': lat, 'longitude': lon})
+                else:
+                    response_data.append({'filename': filename, 'message': 'No GPS coordinates found in the photo.'})
+            except Exception as e:
+                response_data.append({'filename': filename, 'message': f'Error processing the file: {e}'})
+        else:
+            response_data.append({'filename': file.filename, 'message': 'Invalid file format'})
+    
+    return jsonify({'success': True, 'data': response_data})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
