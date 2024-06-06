@@ -40,11 +40,7 @@
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            background-color: #f9f9f9; /* Light gray background */
-        }
-
-        #latitude, #longitude {
-            margin: 5px 0; /* Add some margin between latitude and longitude */
+            text-align: center; /* Center the text */
         }
     </style>
 </head>
@@ -75,13 +71,17 @@
                     data: new FormData(this),
                     processData: false,
                     contentType: false,
+                    dataType: 'json', // Expect JSON response
                     success: function(response) {
-                        // Show the hidden coordinates div
-                        $('#coordinates').show();
-                        // Parse and display the GPS coordinates
-                        var coordinates = response.split(' ');
-                        $('#latitude').text('Latitude: ' + coordinates[0]);
-                        $('#longitude').text('Longitude: ' + coordinates[1]);
+                        if(response.success) {
+                            // Show the hidden coordinates div
+                            $('#coordinates').show();
+                            // Display the GPS coordinates
+                            $('#latitude').text('Latitude: ' + response.latitude);
+                            $('#longitude').text('Longitude: ' + response.longitude);
+                        } else {
+                            alert(response.message);
+                        }
                     },
                     error: function(xhr, status, error) {
                         // Display error message if any
